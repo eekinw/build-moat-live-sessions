@@ -162,8 +162,10 @@ def rebuild_stats() -> None:
         doc_freq.update(set(section.tokens))
     avg_doc_len = total_tokens / len(sections) if sections else 0.0
 
+# main orchestrator
 def build_index(docs_dir: Path = DOCS_DIR) -> tuple[int, int]:
     global sections, doc_freq, avg_doc_len, files_indexed
+    # Loops over every .md file in docs/, parses each one into sections, then computes BM25 stats, then saves to disk.
     sections = []
     for path in sorted(docs_dir.glob("*.md")):
         sections.extend(parse_markdown(path))
@@ -190,7 +192,6 @@ def bm25_score(query_tokens: list[str], section: Section, k1: float = 1.5, b: fl
     heading_tokens = set(tokenize(" ".join(section.heading_path)))
     heading_matches = sum(1 for token in query_tokens if token in heading_tokens)
     return score + (heading_matches * 0.35)
-
 
 
 def search(query: str, k: int = 3) -> list[tuple[Section, float]]:
