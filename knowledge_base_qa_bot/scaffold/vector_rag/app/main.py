@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -9,6 +10,13 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_DIR / ".env")
 
 app = FastAPI(title="Vector RAG Knowledge Base Q&A Bot")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(router)
 
 

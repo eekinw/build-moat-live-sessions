@@ -162,6 +162,21 @@ def rebuild_stats() -> None:
         doc_freq.update(set(section.tokens))
     avg_doc_len = total_tokens / len(sections) if sections else 0.0
 
+def list_indexed_documents() -> list[dict]:
+    documents: dict[str, list[dict]] = {}
+    for section in sections:
+        documents.setdefault(section.file, []).append(
+            {
+                "source": section.id,
+                "heading": " > ".join(section.heading_path),
+            }
+        )
+    return [
+        {"file": file, "sections": file_sections}
+        for file, file_sections in sorted(documents.items())
+    ]
+
+
 # main orchestrator
 def build_index(docs_dir: Path = DOCS_DIR) -> tuple[int, int]:
     global sections, doc_freq, avg_doc_len, files_indexed

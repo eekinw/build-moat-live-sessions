@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Knowledge Base Q&A Bot</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --text: #17202a;
+        --muted: #667085;
+        --line: #d9dee7;
+        --accent: #0f766e;
+        --accent-dark: #115e59;
+        --warning: #92400e;
+        --kb: #e0f2fe;
+        --kb-line: #bae6fd;
+        --rag: #fef3c7;
+        --rag-line: #fde68a;
+        --source: #eef6f4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1360px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 24px 0;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 28px;
+        line-height: 1.15;
+        font-weight: 750;
+      }
+
+      .subtitle,
+      .hint,
+      .status,
+      .empty {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .subtitle,
+      .status,
+      .empty {
+        margin: 0;
+      }
+
+      .hint {
+        margin: 8px 0 0;
+        text-align: right;
+      }
+
+      button {
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 650;
+        min-height: 40px;
+        padding: 0 14px;
+      }
+
+      button:hover {
+        background: var(--accent-dark);
+      }
+
+      button.secondary {
+        background: #fff;
+        color: var(--accent-dark);
+        border-color: var(--line);
+      }
+
+      button.secondary:hover {
+        background: #f0fdfa;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 16px;
+        align-items: start;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .controls {
+        padding: 16px;
+      }
+
+      h2,
+      h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      h3 {
+        font-size: 15px;
+      }
+
+      .quick {
+        display: grid;
+        gap: 8px;
+        margin: 14px 0;
+      }
+
+      .quick button {
+        width: 100%;
+        min-height: 52px;
+        text-align: left;
+        font-weight: 650;
+        line-height: 1.25;
+      }
+
+      .quick small {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+
+      .composer {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .doc-panel {
+        border-top: 1px solid var(--line);
+        margin-top: 16px;
+        padding-top: 14px;
+      }
+
+      .doc-summary {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 6px 0 10px;
+      }
+
+      .doc-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .doc-card {
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px;
+      }
+
+      .doc-card strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 6px;
+        overflow-wrap: anywhere;
+      }
+
+      .doc-card ul {
+        display: grid;
+        gap: 4px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .doc-card li {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 88px;
+        max-height: 160px;
+        resize: vertical;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px 12px;
+        font: inherit;
+      }
+
+      textarea:focus {
+        outline: 2px solid #99f6e4;
+        border-color: var(--accent);
+      }
+
+      .question {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .question strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .question p {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .takeaway {
+        margin-top: 10px;
+        background: #ecfdf5;
+        border: 1px solid #99f6e4;
+        border-left: 4px solid var(--accent);
+        border-radius: 6px;
+        color: #115e59;
+        font-size: 18px;
+        font-weight: 750;
+        line-height: 1.45;
+        padding: 10px 12px;
+      }
+
+      .comparison {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .result {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      .result-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .result-header.kb {
+        background: var(--kb);
+        border-bottom-color: var(--kb-line);
+      }
+
+      .result-header.rag {
+        background: var(--rag);
+        border-bottom-color: var(--rag-line);
+      }
+
+      .badge {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .result-body {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .section {
+        display: grid;
+        gap: 8px;
+      }
+
+      .answer,
+      .citation,
+      .judgment,
+      .focus {
+        border-radius: 6px;
+        line-height: 1.5;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+
+      .answer {
+        background: #f8fafc;
+        border: 1px solid var(--line);
+      }
+
+      .citation {
+        background: #ffffff;
+        border: 1px solid var(--line);
+        color: var(--accent-dark);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 13px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+
+      .judgment {
+        background: #f1f5f9;
+        border: 1px solid var(--line);
+        color: #334155;
+        font-weight: 700;
+      }
+
+      .focus {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        color: var(--warning);
+        font-size: 14px;
+      }
+
+      details {
+        border-top: 1px solid var(--line);
+        padding-top: 4px;
+      }
+
+      summary {
+        color: var(--accent-dark);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 750;
+        padding: 8px 0;
+      }
+
+      .details-body {
+        display: grid;
+        gap: 10px;
+        padding-top: 4px;
+      }
+
+      .source {
+        background: var(--source);
+        border: 1px solid #cce7df;
+        border-radius: 6px;
+        padding: 10px;
+      }
+
+      .source + .source {
+        margin-top: 8px;
+      }
+
+      .source strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+        overflow-wrap: anywhere;
+      }
+
+      .source p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 1040px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .comparison {
+          grid-template-columns: 1fr;
+        }
+
+        .hint {
+          text-align: left;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Knowledge Base Q&A Bot</h1>
+          <p class="subtitle">Compare Markdown KB and Vector RAG answers from the same question.</p>
+        </div>
+        <div>
+          <p class="status" id="status">Ready. Index is prepared when each server starts.</p>
+          <p class="hint">Markdown KB: 8000 | Vector RAG: 8001</p>
+        </div>
+      </header>
+
+      <section class="layout">
+        <aside class="panel controls">
+          <h2>Demo Questions</h2>
+          <div class="quick">
+            <button class="secondary" type="button" data-query="How long do refunds take?">
+              1. How long do refunds take?
+              <small>Direct policy question</small>
+            </button>
+            <button class="secondary" type="button" data-query="When will I receive my money back?">
+              2. When will I receive my money back?
+              <small>Paraphrased refund question</small>
+            </button>
+            <button class="secondary" type="button" data-query='Which section contains the exact phrase "1-2 business days"?'>
+              3. Which section has "1-2 business days"?
+              <small>Exact phrase question</small>
+            </button>
+            <button class="secondary" type="button" data-query="Which restaurants are nearby?">
+              4. Which restaurants are nearby?
+              <small>Out-of-scope question</small>
+            </button>
+          </div>
+
+          <form id="chatForm" class="composer">
+            <textarea id="queryInput" aria-label="Question" placeholder="Optional custom question..."></textarea>
+            <button type="submit">Compare</button>
+          </form>
+
+          <section class="doc-panel" aria-labelledby="documentsTitle">
+            <h2 id="documentsTitle">Indexed Docs</h2>
+            <p id="docSummary" class="doc-summary">Loading document index...</p>
+            <div id="docList" class="doc-list empty">No documents loaded.</div>
+          </section>
+        </aside>
+
+        <section class="panel">
+          <div class="question">
+            <strong>Current Question</strong>
+            <p id="currentQuestion">Choose a demo question.</p>
+            <div id="takeaway" class="takeaway">Select a question, then press Compare to reveal the demo takeaway.</div>
+          </div>
+
+          <div class="comparison" aria-live="polite">
+            <article class="result">
+              <div class="result-header kb">
+                <h2>Markdown KB</h2>
+                <span class="badge">Section index + BM25</span>
+              </div>
+              <div class="result-body">
+                <div class="section">
+                  <h3>Answer</h3>
+                  <div id="markdownAnswer" class="answer empty">No answer yet.</div>
+                </div>
+                <div class="section">
+                  <h3>Citation</h3>
+                  <div id="markdownCitation" class="citation empty">No citation yet.</div>
+                </div>
+                <div class="section">
+                  <h3>Result</h3>
+                  <div id="markdownJudgment" class="judgment empty">Run Compare to evaluate this strategy.</div>
+                </div>
+                <details>
+                  <summary>Retrieval details</summary>
+                  <div class="details-body">
+                    <div id="markdownFocus" class="focus empty">No retrieval result yet.</div>
+                    <div id="markdownSources" class="sources empty">No sources selected.</div>
+                  </div>
+                </details>
+              </div>
+            </article>
+
+            <article class="result">
+              <div class="result-header rag">
+                <h2>Vector RAG</h2>
+                <span class="badge">Chunks + embeddings</span>
+              </div>
+              <div class="result-body">
+                <div class="section">
+                  <h3>Answer</h3>
+                  <div id="vectorAnswer" class="answer empty">No answer yet.</div>
+                </div>
+                <div class="section">
+                  <h3>Citation</h3>
+                  <div id="vectorCitation" class="citation empty">No citation yet.</div>
+                </div>
+                <div class="section">
+                  <h3>Result</h3>
+                  <div id="vectorJudgment" class="judgment empty">Run Compare to evaluate this strategy.</div>
+                </div>
+                <details>
+                  <summary>Retrieval details</summary>
+                  <div class="details-body">
+                    <div id="vectorFocus" class="focus empty">No retrieval result yet.</div>
+                    <div id="vectorSources" class="sources empty">No sources selected.</div>
+                  </div>
+                </details>
+              </div>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const statusText = document.querySelector("#status");
+      const form = document.querySelector("#chatForm");
+      const input = document.querySelector("#queryInput");
+      const currentQuestion = document.querySelector("#currentQuestion");
+      const takeaway = document.querySelector("#takeaway");
+      const docSummary = document.querySelector("#docSummary");
+      const docList = document.querySelector("#docList");
+      let selectedTakeaway = "";
+
+      const takeaways = {
+        "How long do refunds take?": "Both strategies should cite the refund timeline.",
+        "When will I receive my money back?": "Vector RAG should handle this paraphrase better.",
+        'Which section contains the exact phrase "1-2 business days"?': "Markdown KB is easier to inspect for exact phrases.",
+        "Which restaurants are nearby?": "A grounded bot should refuse unsupported questions.",
+      };
+
+      const judgments = {
+        "How long do refunds take?": {
+          markdown: "Expected: cites the refund timeline section.",
+          vector: "Expected: cites the same refund evidence.",
+        },
+        "When will I receive my money back?": {
+          markdown: "Watch for a keyword miss or weaker source match.",
+          vector: "Expected: semantic match to refund timeline.",
+        },
+        'Which section contains the exact phrase "1-2 business days"?': {
+          markdown: "Expected: direct phrase match in shipping FAQ.",
+          vector: "May retrieve related chunks, but exact phrase lookup is not its strength.",
+        },
+        "Which restaurants are nearby?": {
+          markdown: "Expected: cannot confirm from the knowledge base.",
+          vector: "Expected: cannot confirm from the knowledge base.",
+        },
+      };
+
+      const panels = {
+        markdown: {
+          label: "Markdown KB",
+          baseUrl: "",
+          answer: document.querySelector("#markdownAnswer"),
+          citation: document.querySelector("#markdownCitation"),
+          judgment: document.querySelector("#markdownJudgment"),
+          focus: document.querySelector("#markdownFocus"),
+          sources: document.querySelector("#markdownSources"),
+        },
+        vector: {
+          label: "Vector RAG",
+          baseUrl: "http://127.0.0.1:8001",
+          answer: document.querySelector("#vectorAnswer"),
+          citation: document.querySelector("#vectorCitation"),
+          judgment: document.querySelector("#vectorJudgment"),
+          focus: document.querySelector("#vectorFocus"),
+          sources: document.querySelector("#vectorSources"),
+        },
+      };
+
+      function setStatus(text) {
+        statusText.textContent = text;
+      }
+
+      function renderSources(container, items) {
+        container.innerHTML = "";
+        container.classList.toggle("empty", !items.length);
+
+        if (!items.length) {
+          container.textContent = "No sources selected.";
+          return;
+        }
+
+        for (const item of items) {
+          const block = document.createElement("div");
+          block.className = "source";
+
+          const title = document.createElement("strong");
+          title.textContent = `${item.source} (${item.score})`;
+
+          const text = document.createElement("p");
+          text.textContent = item.content;
+
+          block.append(title, text);
+          container.appendChild(block);
+        }
+      }
+
+      function renderDocuments(payload) {
+        const documents = payload.documents || [];
+        docSummary.textContent = `${payload.files_indexed || 0} files, ${payload.sections_indexed || 0} sections indexed.`;
+        docList.innerHTML = "";
+        docList.classList.toggle("empty", !documents.length);
+
+        if (!documents.length) {
+          docList.textContent = "No documents indexed yet.";
+          return;
+        }
+
+        for (const doc of documents) {
+          const card = document.createElement("div");
+          card.className = "doc-card";
+
+          const title = document.createElement("strong");
+          title.textContent = doc.file;
+
+          const sections = document.createElement("ul");
+          for (const section of doc.sections || []) {
+            const item = document.createElement("li");
+            item.textContent = section.heading || section.source;
+            sections.appendChild(item);
+          }
+
+          card.append(title, sections);
+          docList.appendChild(card);
+        }
+      }
+
+      async function loadDocuments() {
+        try {
+          const response = await fetch("/documents");
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.detail || "Document index request failed.");
+          }
+          renderDocuments(payload);
+        } catch (error) {
+          docSummary.textContent = "Could not load document index.";
+          docList.textContent = error.message;
+          docList.classList.add("empty");
+        }
+
+        const firstSource = (payload.sources || [])[0];
+        return firstSource ? firstSource.source : "No citation returned.";
+      }
+
+      function setLoading(panel) {
+        panel.answer.textContent = "Retrieving...";
+        panel.citation.textContent = "Waiting for source...";
+        panel.judgment.textContent = "Evaluating retrieval result...";
+        panel.focus.textContent = "Waiting for retrieval result...";
+        panel.answer.classList.add("empty");
+        panel.citation.classList.add("empty");
+        panel.judgment.classList.add("empty");
+        panel.focus.classList.add("empty");
+        renderSources(panel.sources, []);
+      }
+
+      function resetPanel(panel) {
+        panel.answer.textContent = "No answer yet.";
+        panel.citation.textContent = "No citation yet.";
+        panel.judgment.textContent = "Run Compare to evaluate this strategy.";
+        panel.focus.textContent = "No retrieval result yet.";
+        panel.answer.classList.add("empty");
+        panel.citation.classList.add("empty");
+        panel.judgment.classList.add("empty");
+        panel.focus.classList.add("empty");
+        renderSources(panel.sources, []);
+      }
+
+      function resetComparison() {
+        resetPanel(panels.markdown);
+        resetPanel(panels.vector);
+      }
+
+      const fallbackAnswer = "I cannot confirm from the knowledge base.";
+
+      function firstCitation(payload) {
+        if ((payload.answer || "").trim().startsWith(fallbackAnswer)) {
+          return "No citation returned.";
+        }
+
+        const firstSource = (payload.sources || [])[0];
+        return firstSource ? firstSource.source : "No citation returned.";
+      }
+
+      function displayAnswer(payload) {
+        let answer = payload.answer || "No answer returned.";
+        for (const source of payload.sources || []) {
+          answer = answer.replaceAll(`[${source.source}]`, "");
+          answer = answer.replaceAll(`[Source: ${source.source}]`, "");
+        }
+        return answer.replace(/\s+/g, " ").trim();
+      }
+
+      function resultJudgment(question, key) {
+        return judgments[question]?.[key] || "Compare the answer and citation with the retrieved details.";
+      }
+
+      function renderResult(panel, payload, question, key) {
+        panel.answer.textContent = displayAnswer(payload);
+        panel.citation.textContent = firstCitation(payload);
+        panel.judgment.textContent = resultJudgment(question, key);
+        panel.focus.textContent = payload.learning_focus || "No retrieval focus for this answer.";
+        panel.answer.classList.remove("empty");
+        panel.citation.classList.remove("empty");
+        panel.judgment.classList.remove("empty");
+        panel.focus.classList.remove("empty");
+        renderSources(panel.sources, payload.sources || []);
+      }
+
+      function renderError(panel, error) {
+        panel.answer.textContent = `${panel.label} request failed: ${error.message}`;
+        panel.citation.textContent = "No citation returned.";
+        panel.judgment.textContent = "The request failed before retrieval could be compared.";
+        panel.focus.textContent = "No retrieval analysis available.";
+        panel.answer.classList.remove("empty");
+        panel.citation.classList.add("empty");
+        panel.judgment.classList.add("empty");
+        panel.focus.classList.add("empty");
+        renderSources(panel.sources, []);
+      }
+
+      async function askBackend(panel, question) {
+        const response = await fetch(`${panel.baseUrl}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: question }),
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const payload = contentType.includes("application/json")
+          ? await response.json()
+          : { detail: await response.text() };
+        if (!response.ok) {
+          throw new Error(payload.detail || "Chat request failed.");
+        }
+        return payload;
+      }
+
+      async function compare(question) {
+        currentQuestion.textContent = question;
+        takeaway.textContent = "Running both strategies...";
+        setStatus("Retrieving from both strategies...");
+        setLoading(panels.markdown);
+        setLoading(panels.vector);
+
+        const results = await Promise.allSettled([
+          askBackend(panels.markdown, question),
+          askBackend(panels.vector, question),
+        ]);
+
+        const markdownResult = results[0];
+        const vectorResult = results[1];
+
+        if (markdownResult.status === "fulfilled") {
+          renderResult(panels.markdown, markdownResult.value, question, "markdown");
+        } else {
+          renderError(panels.markdown, markdownResult.reason);
+        }
+
+        if (vectorResult.status === "fulfilled") {
+          renderResult(panels.vector, vectorResult.value, question, "vector");
+        } else {
+          renderError(panels.vector, vectorResult.reason);
+        }
+
+        setStatus("Ready.");
+        takeaway.textContent = selectedTakeaway || "Takeaway: compare the answer, cited source, and retrieval analysis before trusting the response.";
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const question = input.value.trim();
+        if (question) {
+          selectedTakeaway = takeaways[question] || "";
+          compare(question);
+        }
+      });
+
+      document.querySelectorAll("[data-query]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const question = button.dataset.query;
+          input.value = question;
+          currentQuestion.textContent = question;
+          selectedTakeaway = takeaways[question] || "";
+          takeaway.textContent = "Press Compare to reveal the demo takeaway.";
+          resetComparison();
+          setStatus("Question selected. Press Compare to run both strategies.");
+          input.focus();
+        });
+      });
+
+      loadDocuments();
+    </script>
+  </body>
+</html>

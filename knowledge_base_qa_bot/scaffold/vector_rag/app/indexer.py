@@ -110,7 +110,7 @@ def load_markdown_sections(path: Path) -> list[Document]:
         if content:
             documents.append(
                 Document(
-                    page_content=content,
+                    page_content=f"{current_heading}\n\n{content}",
                     metadata={
                         "source": f"{path.name}#{slugify(current_heading)}",
                         "heading": current_heading_path,
